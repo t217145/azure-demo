@@ -1,0 +1,33 @@
+az vm list-sizes --location "eastasia"
+
+az login --use-device-code
+az account set --subscription
+
+terraform init
+terraform plan -out main.tfplan
+terraform apply "main.tfplan"
+
+az aks get-credentials --resource-group aks-demo --name aks-demo
+
+kubectl apply -f deploy.yaml
+kubectl get nodes
+kubectl get pods -o wide --watch
+
+kubectl scale --replicas=4 deployment.apps/dummy
+kubectl get pods -o wide --watch
+
+kubectl rollout restart deployment/dummy
+kubectl delete deployment dummy
+
+        "nodeType": general
+        
+      tolerations:
+      - key: "NotStable"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
+kubectl delete -f deploy.yaml
+
+terraform plan -destroy -out main.destroy.tfplan
+terraform apply "main.destroy.tfplan"

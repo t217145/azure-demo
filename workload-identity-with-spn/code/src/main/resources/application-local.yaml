@@ -1,0 +1,28 @@
+spring:
+    application:
+        name: workload-identity
+    cloud:
+        azure:
+            servicebus:
+                namespace: ${asbspn:wi-demo-asb.servicebus.windows.net}
+                credential:
+                    client-id: ${asbspn}
+                    client-secret: ${asbspnScrt}
+                profile:
+                    tenant-id: ${tenantId:a1d640df-dad4-41ad-9fcb-63f459ca1ef7}
+    datasource:
+        url: jdbc:sqlserver://${dbsvr:wi-demo-db-svr}.database.windows.net:1433;database=${db:wi-demo-db};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net
+        username: wi-demo-db
+        password: ${dbAdmPwd}
+        driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    jpa:
+        database-platform: org.hibernate.dialect.SQLServerDialect
+        hibernate:
+            ddl-auto: update
+asb:
+  entity:
+    name: ${asbQ:testQueue}
+appConfig:
+    asb:
+        sleepTime: 3
+    wi: false

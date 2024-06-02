@@ -1,0 +1,32 @@
+spring:
+    application:
+        name: workload-identity
+    cloud:
+        azure:
+            credential:
+                managed-identity-enabled: true
+                client-id: ${asbspn}
+            servicebus:
+                namespace: ${asbns:wi-demo-asb}.servicebus.windows.net
+                credential:
+                    managed-identity-enabled: true
+                    client-id: ${asbspn}
+                    client-secret:
+                profile:
+                    tenant-id: ${tenantId}
+    datasource:
+        url: jdbc:sqlserver://${dbsvr:wi-demo-db-svr}.database.windows.net:1433;database=${db:wi-demo-db};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;Authentication=ActiveDirectoryManagedIdentity;user=${dbspn}
+        driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+        azure:
+            passwordless-enabled: true
+    jpa:
+        database-platform: org.hibernate.dialect.SQLServerDialect
+        hibernate:
+            ddl-auto: update
+asb:
+  entity:
+    name: ${asbQ:testQueue}
+appConfig:
+    asb:
+        sleepTime: 3
+    auth: wi #wi, wi-spn, spn

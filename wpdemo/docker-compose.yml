@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  wpdemo:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: A123456b
+      MYSQL_DATABASE: wpdemo
+      MYSQL_USER: wpdemo
+      MYSQL_PASSWORD: A123456b
+    volumes:
+      - my-datavolume:/var/lib/mysql    
+    networks:
+      - wpdemo
+  wordpress:
+    depends_on:
+      - wpdemo
+    image: wordpress
+    environment:
+      WORDPRESS_DB_HOST: wpdemo
+      WORDPRESS_DB_USER: wpdemo
+      WORDPRESS_DB_PASSWORD: A123456b
+      WORDPRESS_DB_NAME: wpdemo
+    restart: always
+    ports:
+      - "8081:80"
+    networks:
+      - wpdemo
+    volumes:
+      - wp-content:/var/www/html/wp-content
+networks:
+  wpdemo:
+volumes:
+  my-datavolume:
+  wp-content: 

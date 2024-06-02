@@ -1,0 +1,27 @@
+{"properties": [
+  {
+    "name": "asb.entity.name",
+    "type": "java.lang.String",
+    "description": "A description for 'asb.entity.name'"
+  },
+  {
+    "name": "appConfig.asb.sleep-time",
+    "type": "java.lang.String",
+    "description": "A description for 'appConfig.asb.sleep-time'"
+  },
+  {
+    "name": "appConfig.wi",
+    "type": "java.lang.String",
+    "description": "A description for 'appConfig.wi'"
+  },
+  {
+    "name": "spring.datasource.azure.identity.client-id",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.datasource.azure.identity.client-id'"
+  },
+  {
+    "name": "appConfig.auth",
+    "type": "java.lang.String",
+    "description": "A description for 'appConfig.auth'"
+  }
+]}

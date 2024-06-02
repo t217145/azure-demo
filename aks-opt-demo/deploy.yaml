@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dummy
+  template:
+    metadata:
+      labels:
+        app: dummy
+    spec:
+      nodeSelector:
+        "nodeType": compute
+      containers:
+      - name: dummy
+        image: alpine:3.2
+        resources:
+          requests:
+            cpu: 550m
+            memory: 300Mi
+          limits:
+            cpu: 550m
+            memory: 300Mi
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            while true; do
+              sleep 3600;
+            done
+        # args:
+        #   - |
+        #     while true; do
+        #       echo "Performing some high CPU work"
+        #       echo "n=1000; a=0; b=1; for (i=0; i<n; i++) { temp=a; a=b; b=temp+b; }; a" | bc >/dev/null
+        #     done
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy
+spec:
+  selector:
+    app: dummy
+  type: LoadBalancer
