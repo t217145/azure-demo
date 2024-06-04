@@ -3,7 +3,7 @@
 2. Clone this repo
 ```console
 git clone --depth 1 --branch main https://github.com/t217145/azure-demo.git --single-branch azure-demo/terraform-azure-free-vm
-cd terraform-azure-free-vm
+cd azure-demo/terraform-azure-free-vm
 
 ```
 3. Change the value in variables.tf and save it
