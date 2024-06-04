@@ -21,20 +21,20 @@ terraform -chdir=tf init
 terraform -chdir=tf plan -out main.tfplan
 terraform -chdir=tf apply main.tfplan
 
-$tenant_id = terraform -chdir=tf output --raw tenant_id
-$spn_asb_client_id = terraform -chdir=tf output --raw spn_asb_client_id
-$spn_db_client_id = terraform -chdir=tf output --raw spn_db_client_id
-$acr_admin_username = terraform -chdir=tf output --raw acr_admin_username
-$acr_admin_password = terraform -chdir=tf output --raw acr_admin_password
-$aks_name = terraform -chdir=tf output --raw aks_name
-$acr_name = terraform -chdir=tf output --raw acr_name
-$asb_name = terraform -chdir=tf output --raw asb_name
-$spn_asb_name = terraform -chdir=tf output --raw spn_asb_name
-$spn_db_name = terraform -chdir=tf output --raw spn_db_name
-$rg_name = terraform -chdir=tf output --raw rg_name
-$db_svr_name = terraform -chdir=tf output --raw db_svr_name
-$db_name = terraform -chdir=tf output --raw db_name
-$asb_queue_name = terraform -chdir=tf output --raw asb_queue_name
+Set-Variable -Name "tenant_id" $(terraform -chdir=tf output --raw tenant_id)
+Set-Variable -Name "spn_asb_client_id" $(terraform -chdir=tf output --raw spn_asb_client_id)
+Set-Variable -Name "spn_db_client_id" $(terraform -chdir=tf output --raw spn_db_client_id)
+Set-Variable -Name "acr_admin_username" $(terraform -chdir=tf output --raw acr_admin_username)
+Set-Variable -Name "acr_admin_password" $(terraform -chdir=tf output --raw acr_admin_password)
+Set-Variable -Name "aks_name" $(terraform -chdir=tf output --raw aks_name)
+Set-Variable -Name "acr_name" $(terraform -chdir=tf output --raw acr_name)
+Set-Variable -Name "asb_name" $(terraform -chdir=tf output --raw asb_name)
+Set-Variable -Name "spn_asb_name" $(terraform -chdir=tf output --raw spn_asb_name)
+Set-Variable -Name "spn_db_name" $(terraform -chdir=tf output --raw spn_db_name)
+Set-Variable -Name "rg_name" $(terraform -chdir=tf output --raw rg_name)
+Set-Variable -Name "db_svr_name" $(terraform -chdir=tf output --raw db_svr_name)
+Set-Variable -Name "db_name" $(terraform -chdir=tf output --raw db_name)
+Set-Variable -Name "asb_queue_name" $(terraform -chdir=tf output --raw asb_queue_name)
 
 az aks get-credentials -n "${aks_name}" -g "${rg_name}"
 Set-Variable -Name "oidcUrl" $(az aks show -n "${aks_name}" -g "${rg_name}" --query "oidcIssuerProfile.issuerUrl" -otsv)
