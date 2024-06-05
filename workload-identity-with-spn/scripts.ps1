@@ -5,7 +5,8 @@ Set-Variable -Name "dir" -Value "k8s-yaml"
 Set-Variable -Name "spnDir" -Value "spn"
 
 az login --use-device-code
-az account set -s $(az account list --query "[?isDefault].id" -otsv)
+Set-Variable -Name "subId" $(az account list --query "[?isDefault].id" -otsv)
+az account set -s $subId
 
 <#
   az extension add --name aks-preview
@@ -21,6 +22,7 @@ terraform -chdir=tf init
 terraform -chdir=tf plan -out main.tfplan
 terraform -chdir=tf apply main.tfplan
 
+Set-Variable -Name "CurrentUsrId" $(az ad signed-in-user show --query id -o tsv)
 Set-Variable -Name "tenant_id" $(terraform -chdir=tf output --raw tenant_id)
 Set-Variable -Name "spn_asb_client_id" $(terraform -chdir=tf output --raw spn_asb_client_id)
 Set-Variable -Name "spn_db_client_id" $(terraform -chdir=tf output --raw spn_db_client_id)
@@ -39,20 +41,24 @@ Set-Variable -Name "asb_queue_name" $(terraform -chdir=tf output --raw asb_queue
 az aks get-credentials -n "${aks_name}" -g "${rg_name}"
 Set-Variable -Name "oidcUrl" $(az aks show -n "${aks_name}" -g "${rg_name}" --query "oidcIssuerProfile.issuerUrl" -otsv)
 
-Write-Host `
-    "TenantId: " $tenant_id "`n" `
-    "SPN-ASB Client Id: " $spn_asb_client_id "`n" `
-    "SPN-DB Client Id:" $spn_db_client_id "`n" `
-    "OIDC Issuer URL: " $oidcUrl "`n" `
-    "ACR Username: " $acr_admin_username "`n" `
-    "ACR Password: "  $acr_admin_password
+az sql server ad-admin create --resource-group $rg_name --server-name $db_svr_name --display-name ADMIN --object-id $CurrentUsrId
+az sql server connect --name $db_svr_name --identity --database $db_name --subscription $subId
 
-<#
-CREATE USER "wi-demo-spn-db" FROM EXTERNAL PROVIDER;
-ALTER ROLE db_datareader ADD MEMBER "wi-demo-spn-db";
-ALTER ROLE db_datawriter ADD MEMBER "wi-demo-spn-db";
-ALTER ROLE db_ddladmin ADD MEMBER "wi-demo-spn-db";
+echo @"
+CREATE USER "$spn_db_name" FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER "$spn_db_name";
+ALTER ROLE db_datawriter ADD MEMBER "$spn_db_name";
+ALTER ROLE db_ddladmin ADD MEMBER "$spn_db_name";
 GO
+"@ > script.sql
+
+sqlcmd -S tcp:$db_svr_name.database.windows.net -d $db_name -G -i script.sql
+<#
+  CREATE USER "wi-demo-spn-db" FROM EXTERNAL PROVIDER;
+  ALTER ROLE db_datareader ADD MEMBER "wi-demo-spn-db";
+  ALTER ROLE db_datawriter ADD MEMBER "wi-demo-spn-db";
+  ALTER ROLE db_ddladmin ADD MEMBER "wi-demo-spn-db";
+  GO
 #>
 
 mvn -f code/pom.xml clean package -D maven.test.skip=true
@@ -196,4 +202,5 @@ echo "http://${SvcUrl}/sendAsb/This is a test msg from AKS by SPN`nhttp://${SvcU
   Remove-Item -Path ${dir} -Recurse -Force
   Remove-Item -Path ${spnDir} -Recurse -Force
   Get-ChildItem -Path tf -Recurse | Where-Object { $_.Extension -ne '.tf' } | Remove-Item -Force -Recurse
+
 #>
