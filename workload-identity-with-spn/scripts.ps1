@@ -37,36 +37,32 @@ Set-Variable -Name "rg_name" $(terraform -chdir=tf output --raw rg_name)
 Set-Variable -Name "db_svr_name" $(terraform -chdir=tf output --raw db_svr_name)
 Set-Variable -Name "db_name" $(terraform -chdir=tf output --raw db_name)
 Set-Variable -Name "asb_queue_name" $(terraform -chdir=tf output --raw asb_queue_name)
+Set-Variable -Name "db_username" $(terraform -chdir=tf output --raw db_username)
+Set-Variable -Name "db_password" $(terraform -chdir=tf output --raw db_password)
 
 az aks get-credentials -n "${aks_name}" -g "${rg_name}"
 Set-Variable -Name "oidcUrl" $(az aks show -n "${aks_name}" -g "${rg_name}" --query "oidcIssuerProfile.issuerUrl" -otsv)
 
 az sql server ad-admin create --resource-group $rg_name --server-name $db_svr_name --display-name ADMIN --object-id $CurrentUsrId
-az sql server connect --name $db_svr_name --identity --database $db_name --subscription $subId
 
 echo @"
-CREATE USER "$spn_db_name" FROM EXTERNAL PROVIDER;
-ALTER ROLE db_datareader ADD MEMBER "$spn_db_name";
-ALTER ROLE db_datawriter ADD MEMBER "$spn_db_name";
-ALTER ROLE db_ddladmin ADD MEMBER "$spn_db_name";
+CREATE USER [$spn_db_name] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [$spn_db_name];
+ALTER ROLE db_datawriter ADD MEMBER [$spn_db_name];
+ALTER ROLE db_ddladmin ADD MEMBER [$spn_db_name];
 GO
-"@ > script.sql
+"@ > tf/script.sql
 
-sqlcmd -S tcp:$db_svr_name.database.windows.net -d $db_name -G -i script.sql
-<#
-  CREATE USER "wi-demo-spn-db" FROM EXTERNAL PROVIDER;
-  ALTER ROLE db_datareader ADD MEMBER "wi-demo-spn-db";
-  ALTER ROLE db_datawriter ADD MEMBER "wi-demo-spn-db";
-  ALTER ROLE db_ddladmin ADD MEMBER "wi-demo-spn-db";
-  GO
-#>
+sqlcmd -S tcp:$db_svr_name.database.windows.net -d $db_name -U $usrname -G -i tf/script.sql
 
 mvn -f code/pom.xml clean package -D maven.test.skip=true
 
 docker login "${acr_admin_username}.azurecr.io" -u "${acr_admin_username}" -p "${acr_admin_password}"
-
 docker image build -t "${acr_admin_username}.azurecr.io/wi-demo-spn" code/.
 docker push "${acr_admin_username}.azurecr.io/wi-demo-spn"
+
+mvn -f tf/pom.xml clean
+docker rmi ${acr_admin_username}.azurecr.io/wi-demo-spn"
 
 if (-not (Test-Path -Path $spnDir -PathType Container)) {
   New-Item -ItemType Directory -Path $spnDir
