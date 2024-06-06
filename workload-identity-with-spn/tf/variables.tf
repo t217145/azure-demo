@@ -31,7 +31,7 @@ variable "aks_node_count" {
 }
 
 variable "aks_vm_size" {
-  default = "Standard_D2s_v3"
+  default = "Standard_B2s"
 }
 
 variable "db_name" {

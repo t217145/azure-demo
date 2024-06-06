@@ -31,6 +31,14 @@ output "spn_db_name" {
   value = var.spn_db_name
 }
 
+output "db_username" {
+  value = var.db_username
+}
+
+output "db_password" {
+  value = var.db_password
+}
+
 output "acr_name"{
   value = azurerm_container_registry.acr.name
 }

@@ -22,7 +22,9 @@ terraform -chdir=tf init
 terraform -chdir=tf plan -out main.tfplan
 terraform -chdir=tf apply main.tfplan
 
+Set-Variable -Name "usrname" $(az account show --query user.name --output tsv)
 Set-Variable -Name "CurrentUsrId" $(az ad signed-in-user show --query id -o tsv)
+Set-Variable -Name "asbScopeId" $(az servicebus namespace show --name wi-demo-asb1 --resource-group wi-demo-rg --query id --output tsv)
 Set-Variable -Name "tenant_id" $(terraform -chdir=tf output --raw tenant_id)
 Set-Variable -Name "spn_asb_client_id" $(terraform -chdir=tf output --raw spn_asb_client_id)
 Set-Variable -Name "spn_db_client_id" $(terraform -chdir=tf output --raw spn_db_client_id)
@@ -37,36 +39,33 @@ Set-Variable -Name "rg_name" $(terraform -chdir=tf output --raw rg_name)
 Set-Variable -Name "db_svr_name" $(terraform -chdir=tf output --raw db_svr_name)
 Set-Variable -Name "db_name" $(terraform -chdir=tf output --raw db_name)
 Set-Variable -Name "asb_queue_name" $(terraform -chdir=tf output --raw asb_queue_name)
+Set-Variable -Name "db_username" $(terraform -chdir=tf output --raw db_username)
+Set-Variable -Name "db_password" $(terraform -chdir=tf output --raw db_password)
 
 az aks get-credentials -n "${aks_name}" -g "${rg_name}"
 Set-Variable -Name "oidcUrl" $(az aks show -n "${aks_name}" -g "${rg_name}" --query "oidcIssuerProfile.issuerUrl" -otsv)
 
+az role assignment create --role "Azure Service Bus Data Owner" --assignee $CurrentUsrId --scope $asbScopeId
 az sql server ad-admin create --resource-group $rg_name --server-name $db_svr_name --display-name ADMIN --object-id $CurrentUsrId
-az sql server connect --name $db_svr_name --identity --database $db_name --subscription $subId
 
 echo @"
-CREATE USER "$spn_db_name" FROM EXTERNAL PROVIDER;
-ALTER ROLE db_datareader ADD MEMBER "$spn_db_name";
-ALTER ROLE db_datawriter ADD MEMBER "$spn_db_name";
-ALTER ROLE db_ddladmin ADD MEMBER "$spn_db_name";
+CREATE USER [$spn_db_name] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [$spn_db_name];
+ALTER ROLE db_datawriter ADD MEMBER [$spn_db_name];
+ALTER ROLE db_ddladmin ADD MEMBER [$spn_db_name];
 GO
-"@ > script.sql
+"@ > tf/script.sql
 
-sqlcmd -S tcp:$db_svr_name.database.windows.net -d $db_name -G -i script.sql
-<#
-  CREATE USER "wi-demo-spn-db" FROM EXTERNAL PROVIDER;
-  ALTER ROLE db_datareader ADD MEMBER "wi-demo-spn-db";
-  ALTER ROLE db_datawriter ADD MEMBER "wi-demo-spn-db";
-  ALTER ROLE db_ddladmin ADD MEMBER "wi-demo-spn-db";
-  GO
-#>
+sqlcmd -S tcp:$db_svr_name.database.windows.net -d $db_name -U $usrname -G -i tf/script.sql
 
 mvn -f code/pom.xml clean package -D maven.test.skip=true
 
 docker login "${acr_admin_username}.azurecr.io" -u "${acr_admin_username}" -p "${acr_admin_password}"
-
 docker image build -t "${acr_admin_username}.azurecr.io/wi-demo-spn" code/.
 docker push "${acr_admin_username}.azurecr.io/wi-demo-spn"
+
+mvn -f code/pom.xml clean
+docker rmi "${acr_admin_username}.azurecr.io/wi-demo-spn"
 
 if (-not (Test-Path -Path $spnDir -PathType Container)) {
   New-Item -ItemType Directory -Path $spnDir
@@ -106,13 +105,15 @@ if (-not (Test-Path -Path $dir -PathType Container)) {
     New-Item -ItemType Directory -Path $dir
 }
 
+  # annotations:
+  #   azure.workload.identity/${spn_asb_name}-fed: ${spn_asb_client_id}
+  #   azure.workload.identity/${spn_db_name}-fed: ${spn_db_client_id}
+
 echo @"
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  annotations:
-    azure.workload.identity/${spn_asb_name}-fed: ${spn_asb_client_id}
-    azure.workload.identity/${spn_db_name}-fed: ${spn_db_client_id}
+
   name: ${k8sSA}
   namespace: ${k8sNS}
   labels:
@@ -189,6 +190,7 @@ kubectl apply -f ${dir}\.
 
 Set-Variable -Name "SvcUrl" $(kubectl get service ${k8sSvc} -n ${k8sNS} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 echo "http://${SvcUrl}/sendAsb/This is a test msg from AKS by SPN`nhttp://${SvcUrl}/saveToDB/This is a test record from AKS by SPN"
+kubectl get serviceaccount ${k8sSA} -n ${k8sNS} -o yaml
 
 <#
   select * from wi_demo;
