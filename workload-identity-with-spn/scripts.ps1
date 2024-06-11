@@ -64,13 +64,8 @@ docker login "${acr_admin_username}.azurecr.io" -u "${acr_admin_username}" -p "$
 docker image build -t "${acr_admin_username}.azurecr.io/wi-demo-spn" code/.
 docker push "${acr_admin_username}.azurecr.io/wi-demo-spn"
 
-<<<<<<< HEAD
 mvn -f code/pom.xml clean
 docker rmi "${acr_admin_username}.azurecr.io/wi-demo-spn"
-=======
-mvn -f tf/pom.xml clean
-docker rmi ${acr_admin_username}.azurecr.io/wi-demo-spn"
->>>>>>> b49693fed13b2372c0f906eb60563a7b6ea3770e
 
 if (-not (Test-Path -Path $spnDir -PathType Container)) {
   New-Item -ItemType Directory -Path $spnDir
