@@ -2,7 +2,7 @@
 1. Go to Azure Console or local terminal with Azure CLI / PowerShell installed
 2. Clone this repo
 ```console
-git clone --depth 1 --branch main https://github.com/t217145/azure-demo.git --single-branch azure-demo/terraform-azure-free-vm
+git clone https://github.com/t217145/azure-demo.git
 cd azure-demo/terraform-azure-free-vm
 
 ```
