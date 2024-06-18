@@ -11,8 +11,8 @@ After git clone this repo, <span style='color: red;'><b>change the MySQL passwor
 Code to run
 ---
 ```
-git clone https://github.com/t217145/wpdemo.git
-cd wpdemo
+git clone https://github.com/t217145/azure-demo.git
+cd azure-demo/wpdemo
 terraform init
 terraform plan -out main.tfplan
 terraform apply main.tfplan
