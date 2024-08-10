@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "openai.key",
+    "type": "java.lang.String",
+    "description": "A description for 'openai.key'"
+  },
+  {
+    "name": "openai.endpoint",
+    "type": "java.lang.String",
+    "description": "A description for 'openai.endpoint'"
+  },
+  {
+    "name": "openai.model",
+    "type": "java.lang.String",
+    "description": "A description for 'openai.model'"
+  }
+]}
