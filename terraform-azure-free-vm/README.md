@@ -1,3 +1,10 @@
+### Before start
+1. You can check the available zone in your subscription that support Standard_B1s
+```console
+az vm list-skus --size Standard_B1s --all --output table
+
+```
+
 ### Setup the VPN server
 1. Go to Azure Console or local terminal with Azure CLI / PowerShell installed
 2. Clone this repo
