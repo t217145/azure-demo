@@ -28,7 +28,7 @@ terraform -chdir=tf plan -out main.tfplan
 terraform -chdir=tf apply main.tfplan
 
 # Assign variable which is the output for terraform.
-Set-Variable -Name "asbScopeId" $(az servicebus namespace show --name wi-demo-asb1 --resource-group wi-demo-rg --query id --output tsv)
+Set-Variable -Name "asbScopeId" $(az servicebus namespace show --name wi-demo-asb --resource-group wi-demo-rg --query id --output tsv)
 Set-Variable -Name "tenant_id" $(terraform -chdir=tf output --raw tenant_id)
 Set-Variable -Name "spn_asb_client_id" $(terraform -chdir=tf output --raw spn_asb_client_id)
 Set-Variable -Name "spn_db_client_id" $(terraform -chdir=tf output --raw spn_db_client_id)
