@@ -13,7 +13,11 @@ git clone https://github.com/t217145/azure-demo.git
 cd azure-demo/terraform-azure-free-vm
 
 ```
-3. Change the value in variables.tf and save it
+3. Change the value in variables.tf and save it (press Ctrl and X in edit mode)
+```console
+nano variables.tf
+
+```
 4. Type following command in sequence
 ```console
 terraform init
