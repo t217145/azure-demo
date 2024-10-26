@@ -20,7 +20,7 @@ terraform init
 terraform plan -out main.tfplan
 terraform apply main.tfplan
 $ip_address = terraform output --raw public_ip_address
-$sh_pwd = terraform output -sensitive shadowsocks_pwd
+$sh_pwd = terraform output shadowsocks_pwd
 echo $ip_address
 echo $sh_pwd
 
