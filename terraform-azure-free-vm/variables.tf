@@ -17,3 +17,8 @@ variable "admin_password" {
   default     = "Password1234!"
   description = "Password to login to the VM"
 }
+
+variable "shadowsocks_port" {
+  default     = "18388"
+  description = "ShadowSocks Port Number"
+}
