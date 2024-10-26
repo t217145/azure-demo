@@ -6,4 +6,5 @@ resource "random_password" "password" {
 
 output "shadowsocks_pwd" {
   value = random_password.password.result
+  sensitive = true
 }
