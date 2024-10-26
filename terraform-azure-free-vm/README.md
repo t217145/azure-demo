@@ -20,7 +20,9 @@ terraform init
 terraform plan -out main.tfplan
 terraform apply main.tfplan
 $ip_address = terraform output --raw public_ip_address
+$sh_pwd = terraform output -sensitive shadowsocks_pwd
 echo $ip_address
+echo $sh_pwd
 
 ```
 5. Open a browser and visit the http://{$ip_address}
