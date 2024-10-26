@@ -179,7 +179,7 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
       "sudo apt-get update -y && apt-get upgrade -y",
       "sudo apt-get install docker.io -y",
       "sudo docker run -itd --cap-add=NET_ADMIN -p ${var.vpn_port_number}:1194/udp -p 80:8080/tcp -e HOST_ADDR=$(curl -s https://api.ipify.org) --name dockovpn alekslitvinenk/openvpn"
-      "sudo docker run -itd -e PASSWORD=${random_password.password.result} -e METHOD=aes-256-gcm -p ${var.shadowsocks_port}:8388 --name dockerShadow shadowsocks/shadowsocks-libev 
+      "sudo docker run -itd -e PASSWORD=${random_password.password.result} -e METHOD=aes-256-gcm -p ${var.shadowsocks_port}:8388 --name dockerShadow shadowsocks/shadowsocks-libev"
     ]
   }
 }
