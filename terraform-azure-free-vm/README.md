@@ -38,3 +38,36 @@ Beware that you can down the openvpn file just once!!
 1. Install / Download the openvpn apps
 2. Download the above openvpn file to your mobile
 3. Open the openvpn apps and import the profile by selecting openvpn file you downloaded
+
+### Adding new ShadowSocks and open NSG port
+1. Change the value of PortNbr, Pwd and SdsName
+```console
+$PortNbr=10000
+$Pwd="123456789"
+$SdsName="mySds"
+
+Set-Variable -Name "Cmd" -Value "docker run -itd -e PASSWORD=${Pwd} -e METHOD=aes-256-gcm -p ${PortNbr}:8388 --name ${SdsName} shadowsocks/shadowsocks-libev"
+Set-Variable -Name "VmName" $(az vm list --query "[0].name" --output tsv)
+Set-Variable -Name "RGName" $(az network nsg list --query "[0].{ResourceGroup:resourceGroup}" --output tsv)
+Set-Variable -Name "NSGName" $(az network nsg list --query "[0].{NSGName:name}" --output tsv)
+Set-Variable -Name "MaxPriority" ([int]$(az network nsg rule list --nsg-name ${NSGName} --resource-group ${RGName}  --query "[*].priority" --output tsv | sort -nr | head -n 1) + 1) 
+az network nsg rule create --resource-group ${RGName} --nsg-name ${NSGName} --name ${SdsName} --direction Inbound --priority ${MaxPriority} --source-address-prefix "*" --source-port-range "*" --destination-address-prefix "*" --destination-port-range ${PortNbr} --access Allow --protocol "*"
+az vm run-command invoke --resource-group ${RGName} --name ${VmName} --command-id RunShellScript --scripts "${Cmd}"
+
+```
+
+### Adding new openVpn and open NSG port
+1. Change the value of PortNbr, Pwd and SdsName
+```console
+$oPortNbr=10000
+$openVpnName="myOpenVpn"
+
+Set-Variable -Name "oCmd" -Value "docker run -itd --cap-add=NET_ADMIN -p ${oPortNbr}:1194/udp -p 80:8080/tcp -e HOST_ADDR=$(curl -s https://api.ipify.org) --name ${openVpnName} alekslitvinenk/openvpn"
+Set-Variable -Name "VmName" $(az vm list --query "[0].name" --output tsv)
+Set-Variable -Name "RGName" $(az network nsg list --query "[0].{ResourceGroup:resourceGroup}" --output tsv)
+Set-Variable -Name "NSGName" $(az network nsg list --query "[0].{NSGName:name}" --output tsv)
+Set-Variable -Name "MaxPriority" ([int]$(az network nsg rule list --nsg-name ${NSGName} --resource-group ${RGName}  --query "[*].priority" --output tsv | sort -nr | head -n 1) + 1) 
+az network nsg rule create --resource-group ${RGName} --nsg-name ${NSGName} --name ${openVpnName} --direction Inbound --priority ${MaxPriority} --source-address-prefix "*" --source-port-range "*" --destination-address-prefix "*" --destination-port-range ${PortNbr} --access Allow --protocol "*"
+az vm run-command invoke --resource-group ${RGName} --name ${VmName} --command-id RunShellScript --scripts "${oCmd}"
+
+```
