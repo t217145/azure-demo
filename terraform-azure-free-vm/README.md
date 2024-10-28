@@ -57,7 +57,7 @@ az vm run-command invoke --resource-group ${RGName} --name ${VmName} --command-i
 ```
 
 ### Adding new openVpn and open NSG port
-1. Change the value of PortNbr, Pwd and SdsName
+1. Change the value of oPortNbr and openVpnName
 ```console
 $oPortNbr=10000
 $openVpnName="myOpenVpn"
