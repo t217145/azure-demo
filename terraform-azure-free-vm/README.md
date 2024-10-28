@@ -59,15 +59,19 @@ az vm run-command invoke --resource-group ${RGName} --name ${VmName} --command-i
 ### Adding new openVpn and open NSG port
 1. Change the value of oPortNbr and openVpnName
 ```console
-$oPortNbr=10000
-$openVpnName="myOpenVpn"
+$oPortNbr=10001
+$webPortNbr=10002
+$openVpnName="myVpn"
 
-Set-Variable -Name "oCmd" -Value "docker run -itd --cap-add=NET_ADMIN -p ${oPortNbr}:1194/udp -p 80:8080/tcp -e HOST_ADDR=$(curl -s https://api.ipify.org) --name ${openVpnName} alekslitvinenk/openvpn"
+Set-Variable -Name "oCmd" -Value "docker run -itd --cap-add=NET_ADMIN -p ${oPortNbr}:1194/udp -p ${webPortNbr}:8080/tcp -e HOST_ADDR=$(curl -s https://api.ipify.org) --name ${openVpnName} alekslitvinenk/openvpn"
 Set-Variable -Name "VmName" $(az vm list --query "[0].name" --output tsv)
 Set-Variable -Name "RGName" $(az network nsg list --query "[0].{ResourceGroup:resourceGroup}" --output tsv)
 Set-Variable -Name "NSGName" $(az network nsg list --query "[0].{NSGName:name}" --output tsv)
+Set-Variable -Name "Url" $(az vm show --resource-group ${RGName} --name ${VmName} -d --query publicIps -o tsv)
 Set-Variable -Name "MaxPriority" ([int]$(az network nsg rule list --nsg-name ${NSGName} --resource-group ${RGName}  --query "[*].priority" --output tsv | sort -nr | head -n 1) + 1) 
-az network nsg rule create --resource-group ${RGName} --nsg-name ${NSGName} --name ${openVpnName} --direction Inbound --priority ${MaxPriority} --source-address-prefix "*" --source-port-range "*" --destination-address-prefix "*" --destination-port-range ${PortNbr} --access Allow --protocol "*"
+az network nsg rule create --resource-group ${RGName} --nsg-name ${NSGName} --name ${openVpnName} --direction Inbound --priority ${MaxPriority} --source-address-prefix "*" --source-port-range "*" --destination-address-prefix "*" --destination-port-range ${oPortNbr} --access Allow --protocol "*"
+az network nsg rule create --resource-group ${RGName} --nsg-name ${NSGName} --name ${openVpnName}Web --direction Inbound --priority (${MaxPriority}+1) --source-address-prefix "*" --source-port-range "*" --destination-address-prefix "*" --destination-port-range ${webPortNbr} --access Allow --protocol "*"
 az vm run-command invoke --resource-group ${RGName} --name ${VmName} --command-id RunShellScript --scripts "${oCmd}"
+echo "http://${Url}:${webPortNbr}"
 
 ```
