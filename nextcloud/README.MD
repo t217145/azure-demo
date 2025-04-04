@@ -12,7 +12,7 @@ This is an Azure CLI script to setup a NextCloud application on Azure WebApps. W
 
 3. Change the value in variables.tf
 
-4. ***Only for local termainal*** Run the command az login to login to your Azure account.
+4. ***Only for local termainal*** Run the command az login to login to your Azure account.\
    ***Only for Azure CLI*** Run the command az account list to get the default subscription id.
 
 5. Set the environmental variable **ARM_SUBSCRIPTION_ID** with your subscription id.
