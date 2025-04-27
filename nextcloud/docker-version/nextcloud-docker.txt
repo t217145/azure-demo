@@ -1,0 +1,23 @@
+mkdir -p /home/currentuser/nextcloud/db_data
+mkdir -p /home/currentuser/nextcloud/nextcloud_data
+
+docker run -d \
+  --name nextcloud_db \
+  -e MYSQL_ROOT_PASSWORD=NextCloudPwd \
+  -e MYSQL_PASSWORD=NextCloudPwd \
+  -e MYSQL_DATABASE=nextcloud \
+  -e MYSQL_USER=NextCloudUsr \
+  -v /home/currentuser/nextcloud/db_data:/var/lib/mysql \
+  mysql:5.7 \
+  --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+
+docker run -d \
+  --name nextcloud_app \
+  --link nextcloud_db:mysql \
+  -p 8080:80 \
+  -e MYSQL_HOST=nextcloud_db \
+  -e MYSQL_DATABASE=nextcloud \
+  -e MYSQL_USER=NextCloudUsr \
+  -e MYSQL_PASSWORD=NextCloudPwd \
+  -v /home/currentuser/nextcloud/nextcloud_data:/var/www/html \
+  nextcloud

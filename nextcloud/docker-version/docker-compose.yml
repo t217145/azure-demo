@@ -1,0 +1,35 @@
+version: "3.7"
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: nextcloud_db
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    environment:
+      MYSQL_ROOT_PASSWORD: NextCloudPwd
+      MYSQL_PASSWORD: NextCloudPwd
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: NextCloudUsr
+    volumes:
+      - db_data:/var/lib/mysql
+
+  app:
+    image: nextcloud
+    container_name: nextcloud_app
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      MYSQL_HOST: db
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: NextCloudUsr
+      MYSQL_PASSWORD: NextCloudPwd
+    depends_on:
+      - db
+    volumes:
+      - nextcloud_data:/var/www/html
+
+volumes:
+  db_data:
+  nextcloud_data:
