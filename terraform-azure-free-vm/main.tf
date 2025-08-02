@@ -79,8 +79,19 @@ resource "azurerm_network_security_group" "my_terraform_nsg" {
     destination_address_prefix = "*"
   }
   security_rule {
-    name                       = "ShadowSocksU"
+    name                       = "VPNWeb"
     priority                   = 1004
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = var.vpn_web_port_number
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }  
+  security_rule {
+    name                       = "ShadowSocksU"
+    priority                   = 1005
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Udp"
@@ -91,7 +102,7 @@ resource "azurerm_network_security_group" "my_terraform_nsg" {
   }
   security_rule {
     name                       = "ShadowSocksT"
-    priority                   = 1005
+    priority                   = 1006
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -200,7 +211,7 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
       "echo ${var.admin_password} | sudo su",
       "sudo apt-get update -y && apt-get upgrade -y",
       "sudo apt-get install docker.io -y",
-      "sudo docker run -itd --cap-add=NET_ADMIN -p ${var.vpn_port_number}:1194/udp -p 80:8080/tcp -e HOST_ADDR=$(curl -s https://api.ipify.org) --name dockovpn alekslitvinenk/openvpn",
+      "sudo docker run -itd --cap-add=NET_ADMIN -p ${var.vpn_port_number}:1194/udp -p ${var.vpn_web_port_number}:8080/tcp -e HOST_ADDR=$(curl -s https://api.ipify.org) --name dockovpn alekslitvinenk/openvpn",
       "sudo docker run -itd -e PASSWORD=${random_password.password.result} -e METHOD=aes-256-gcm -p ${var.shadowsocks_port}:8388 --name dockerShadow shadowsocks/shadowsocks-libev"
     ]
   }

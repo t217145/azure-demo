@@ -8,6 +8,11 @@ variable "vpn_port_number" {
   description = "VPN Port Number"
 }
 
+variable "vpn_web_port_number" {
+  default = "12346"
+  description = "VPN Web Port Number"
+}
+
 variable "admin_name" {
   default     = "cyrus"
   description = "User name to login to the VM"
