@@ -27,3 +27,11 @@ variable "shadowsocks_port" {
   default     = "18388"
   description = "ShadowSocks Port Number"
 }
+
+variable "tenant_id" {
+  type = string
+}
+
+variable "subscription_id" {
+  type = string
+}
