@@ -29,9 +29,11 @@ variable "shadowsocks_port" {
 }
 
 variable "tenant_id" {
-  type = string
+  default      = ""
+  description  = "Azure Tenant ID" 
 }
 
 variable "subscription_id" {
-  type = string
+  default      = ""
+  description  = "Azure Subscription ID" 
 }
