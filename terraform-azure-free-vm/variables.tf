@@ -15,7 +15,7 @@ variable "vpn_web_port_number" {
 
 variable "admin_name" {
   default     = "cyrus"
-  description = "User name to login to the VM"
+  description = "User name to login to the VM, name cannot contain '-', only characters and number only"
 }
 
 variable "admin_password" {
