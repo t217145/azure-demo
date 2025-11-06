@@ -19,7 +19,7 @@ variable "admin_name" {
 }
 
 variable "admin_password" {
-  default     = "Password1234!"
+  default     = ""
   description = "Password to login to the VM"
 }
 
