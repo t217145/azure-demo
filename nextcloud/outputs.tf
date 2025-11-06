@@ -6,4 +6,5 @@ output "nextcloud_url" {
 output "admin_credentials" {
   value = "Username: ${var.admin_id}, Password: ${var.admin_pwd}"
   description = "Default admin credentials for NextCloud"
+  sensitive = true
 }
