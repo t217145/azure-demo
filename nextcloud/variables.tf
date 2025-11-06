@@ -9,6 +9,7 @@ variable "admin_pwd" {
   description = "NextCloud admin password"
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "name_prefix" {
