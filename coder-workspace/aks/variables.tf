@@ -10,35 +10,10 @@ variable "location" {
   default     = "eastasia"
 }
 
-variable "k8s_namespace" {
-  description = "Value of namespace that contains coder and its db"
-  type        = string
-  default     = "coder-ns"
-}
-
 variable "file_share_size_gb" {
   description = "Size of the file share in GB"
   type        = number
   default     = 10
-}
-
-variable "db_user" {
-  description = "User name of postgresql"
-  type        = string
-  default     = ""
-}
-
-variable "db_pwd" {
-  description = "Password of postgresql"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "db_name" {
-  description = "Name of DB"
-  type        = string  
-  default     = "code-db"
 }
 
 variable "vm_size" {
