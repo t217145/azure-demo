@@ -9,9 +9,6 @@ resource "kubernetes_namespace" "coder_ns" {
   metadata {
     name = var.k8s_namespace
   }
-  depends_on = [ 
-    azurerm_kubernetes_cluster.aks
-  ]
 }
 
 # Secret for Postgres credentials
@@ -30,7 +27,7 @@ resource "kubernetes_secret" "postgres_secret" {
   }
 
   depends_on = [ 
-    azurerm_kubernetes_cluster.aks
+    kubernetes_namespace.coder_ns
   ]
 }
 
