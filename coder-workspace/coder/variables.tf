@@ -23,7 +23,7 @@ variable "db_user" {
 }
 
 variable "db_pwd" {
-  description = "Password of Postgresql"
+  description = "Password of Postgresql, cannot contains @"
   type        = string
   default     = ""
   sensitive   = true
