@@ -11,7 +11,7 @@ Architecture
 - Storage Account + Azure File Share — persistent storage mounted into workloads
 - Role assignments and networking configured via AKS defaults
 - PostgreSQL Database — managed by Helm chart for Coder data persistence
-- Coder Application — deployed via Helm chart for developer workspace management
+- Coder Application — deployed via Helm chart for developer workspace management 
 
 Authentication
 ---
