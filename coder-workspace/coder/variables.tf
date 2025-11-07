@@ -17,13 +17,13 @@ variable "k8s_namespace" {
 }
 
 variable "db_user" {
-  description = "User name of postgresql"
+  description = "User name of Postgresql"
   type        = string
   default     = ""
 }
 
 variable "db_pwd" {
-  description = "Password of postgresql"
+  description = "Password of Postgresql"
   type        = string
   default     = ""
   sensitive   = true
