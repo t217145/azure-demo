@@ -184,3 +184,13 @@ resource "helm_release" "coder" {
     kubernetes_secret.coder_db_url
   ]
 }
+
+
+data "kubernetes_service" "coder" {
+  metadata {
+    name      = "coder"
+    namespace = kubernetes_namespace.coder_ns.metadata[0].name
+  }
+
+  depends_on = [helm_release.coder]
+}
