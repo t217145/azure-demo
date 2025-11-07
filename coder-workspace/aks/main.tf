@@ -38,7 +38,7 @@ resource "azurerm_storage_account" "storage" {
 
 resource "azurerm_storage_share" "file_share" {
   name                    = "fileshare"
-  storage_account_id      = azurerm_storage_account.storage.id
+  storage_account_name    = azurerm_storage_account.storage.name
   quota                   = var.file_share_size_gb
   depends_on = [ 
     azurerm_storage_account.storage
