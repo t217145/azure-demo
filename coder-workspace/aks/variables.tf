@@ -2,7 +2,7 @@ variable "name_prefix" {
   description = "Prefix for resource names"
   type        = string
   default     = ""
-}
+} 
 
 variable "location" {
   description = "The location where resources will be deployed"

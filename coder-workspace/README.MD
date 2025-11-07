@@ -2,123 +2,103 @@
 
 Abstract
 ---
-This Terraform project provisions an Azure-based Coder workspace on AKS with persistent file storage. It creates the resource group, an AKS cluster, a storage account and Azure File Share, and outputs key values for post-deploy access.
+This repository contains a two-workspace Terraform project that provisions infrastructure on Azure and deploys the Coder workspace into a Kubernetes cluster.
+
+- Workspace 1 (aks): creates Azure resources — Resource Group, AKS cluster, Storage Account and Azure File Share (infrastructure).
+- Workspace 2 (coder): deploys Coder and its dependencies (PostgreSQL via Helm) into the Kubernetes cluster created by workspace 1.
 
 Architecture
 ---
-- Azure Resource Group — container for all resources
-- AKS Cluster — Kubernetes control plane to run the Coder service
-- Storage Account + Azure File Share — persistent storage mounted into workloads
-- Role assignments and networking configured via AKS defaults
-- PostgreSQL Database — managed by Helm chart for Coder data persistence
-- Coder Application — deployed via Helm chart for developer workspace management 
+- Azure Resource Group — container for the resources.
+- AKS Cluster — Kubernetes control plane running Coder.
+- Storage Account + Azure File Share — persistent storage for developer workspaces.
+- PostgreSQL — deployed in-cluster via Helm (Bitnami/other chart).
+- Coder — deployed as a Helm release in a dedicated Kubernetes namespace.
+- Kubernetes Secret — holds the DB connection string consumed by Coder.
+- Two Terraform workspaces: `aks` (infra) and `coder` (app).
 
-Authentication
+Providers and authentication
 ---
-This project uses OpenID Connect (OIDC) for Azure authentication in production environments. OIDC enables secure, token-based authentication between GitHub Actions and Azure without storing credentials.
+Providers used (defined in tf/providers.tf under each workspace):
+- azurerm — Azure Resource Manager (>= 3.75.0)
+- kubernetes — Kubernetes provider (>= 2.23.0)
+- helm — Helm provider for chart releases (>= 2.11.0)
 
-OIDC Setup Requirements:
-1. Configure Azure AD application with appropriate permissions
-2. Set up GitHub Actions OIDC provider in Azure AD
-3. Configure GitHub repository with required Azure OIDC settings:
-   - `AZURE_CLIENT_ID`
-   - `AZURE_TENANT_ID`
-   - `AZURE_SUBSCRIPTION_ID`
+Authentication notes:
+- Production: use OIDC for azurerm (provider "azurerm" with use_oidc = true). This is the recommended secure approach for GitHub Actions / CI.
+- Local/testing: you may comment out use_oidc and authenticate locally with `az login` or service principal credentials.
+- The `coder` workspace references the AKS outputs/credentials (via Terraform Cloud workspace outputs or remote state).
 
-For local development:
-- Comment out `use_oidc = true` and use Azure CLI authentication
-- Run `az login` before running Terraform commands
-- Ensure you have the necessary Azure role assignments
-
-For production deployments:
-- Keep `use_oidc = true` enabled
-- Use GitHub Actions workflow with OIDC authentication
-- Store sensitive values in GitHub Secrets
-
-Terraform components
+Terraform components (high level)
 ---
-Primary Terraform resources are defined in `azure-demo/coder-workspace/tf/main.tf`:
+- Azure resources (aks workspace):
+  - azurerm_resource_group
+  - azurerm_kubernetes_cluster (AKS)
+  - azurerm_storage_account
+  - azurerm_storage_share (Azure Files)
+  - role assignment(s) for AKS to access storage
+- Kubernetes resources (coder workspace):
+  - kubernetes_namespace (e.g., coder-ns)
+  - kubernetes_secret (DB connection string)
+- Helm releases (coder workspace):
+  - helm_release for PostgreSQL (coder-db)
+  - helm_release for Coder (coder)
 
-Azure Resources:
-- `azurerm_resource_group.rg` — root resource group
-- `azurerm_kubernetes_cluster.aks` — AKS cluster used to host Coder
-- `azurerm_storage_account.storage` — storage account for files
-- `azurerm_storage_share.file_share` — Azure Files share mounted by pods
-- `azurerm_role_assignment.aks_to_storage` — RBAC for AKS to access storage
-
-Kubernetes Resources:
-- `kubernetes_namespace.coder_ns` — namespace for Coder deployment
-- `kubernetes_secret.coder_db_url` — secret containing database connection string
-
-Helm Releases:
-- `helm_release.coder_db` — PostgreSQL database deployment
-- `helm_release.coder` — Coder application deployment
-
-Provider and requirements
+Two-workspace flow
 ---
-The following providers are configured in `azure-demo/coder-workspace/tf/providers.tf`:
-
-- `azurerm` (>= 3.75.0) — Azure Resource Manager provider for Azure resources
-- `kubernetes` (>= 2.23.0) — Provider for Kubernetes resources
-- `helm` (>= 2.11.0) — Provider for Helm chart deployments
+1. Deploy aks workspace first. It provisions AKS and storage and exposes outputs (AKS kubeconfig, cluster name, storage resource info).
+2. Configure remote state or Terraform Cloud outputs so the coder workspace can consume AKS kubeconfig/connection info.
+3. Deploy coder workspace which uses the Kubernetes and Helm providers to install the DB, create the secret and install the Coder Helm chart.
 
 Inputs / Variables
 ---
-See [`azure-demo/coder-workspace/tf/variables.tf`](azure-demo/coder-workspace/tf/variables.tf) for the configurable inputs:
+Below are variables present in each workspace (copied from the two variables.tf files):
 
-Infrastructure variables:
-- `name_prefix` (string) - Default: `cyruscoder` - Prefix used for all Azure resource names
-- `location` (string) - Default: `eastasia` - Azure region to deploy resources
-- `vm_size` (string) - Default: `Standard_DS2_v2` - VM size for AKS node pool
-- `file_share_size_gb` (number) - Default: `10` - Size in GB for Azure File Share
+aks workspace (d:\Workspace\GitHub\azure-demo\coder-workspace\tf\aks\variables.tf)
+- name_prefix (string) — Prefix for resource names — default: ""
+- location (string) — Azure region — default: "eastasia"
+- file_share_size_gb (number) — Azure File Share quota in GB — default: 10
+- vm_size (string) — AKS node VM size — default: "Standard_DS2_v2"
+- tenant_id (string) — Azure Tenant ID — default: ""
+- subscription_id (string) — Azure Subscription ID — default: ""
 
-Kubernetes/Namespace variables:
-- `k8s_namespace` (string) - Default: `coder` - Kubernetes namespace for Coder deployment
+coder workspace (d:\Workspace\GitHub\azure-demo\coder-workspace\tf\coder\variables.tf)
+- tf_org (string) — Terraform Cloud org name (if used) — default: ""
+- tfc_aks_workspace_name (string) — TFC workspace name of the AKS workspace (for fetching outputs) — default: ""
+- k8s_namespace (string) — Namespace containing Coder and DB — default: "coder-ns"
+- db_user (string) — PostgreSQL username — default: ""
+- db_pwd (string, sensitive) — PostgreSQL password — default: ""
+- db_name (string) — Database name — default: "code-db"
+- tenant_id (string) — Azure Tenant ID — default: ""
+- subscription_id (string) — Azure Subscription ID — default: ""
 
-Database variables:
-- `db_helm_name` (string) - Default: `coder-db` - Helm release name for PostgreSQL
-- `db_name` (string) - Default: `coder` - PostgreSQL database name
-- `db_user` (string) - Default: `coder` - PostgreSQL username
-- `db_pwd` (string) - Default: `coder` - PostgreSQL password (should be changed in production)
+Notes about variables
+- Sensitive values (e.g., db_pwd) should be provided via secure means (Terraform Cloud variables, environment variables TF_VAR_*, or terraform.tfvars kept out of VCS).
+- The coder workspace expects access to the AKS credentials/outputs — typical patterns: Terraform Cloud workspace data sources, remote state, or manually provide kubeconfig.
 
-Each variable can be overridden by:
-- Setting environment variables (TF_VAR_variable_name)
-- Using -var flag in terraform command
-- Creating a terraform.tfvars file
-
-Outputs
+Deploy (high-level)
 ---
-The project publishes outputs in [`azure-demo/coder-workspace/tf/outputs.tf`](azure-demo/coder-workspace/tf/outputs.tf):
+1. Deploy aks workspace:
+   - cd tf/aks
+   - terraform init
+   - terraform plan -out aks.plan
+   - terraform apply aks.plan
+   - Capture outputs (kubeconfig / cluster name / storage info) or make them available via remote state/Terraform Cloud.
+2. Deploy coder workspace:
+   - cd tf/coder
+   - Set required variables (db credentials, link to AKS outputs or provide kubeconfig)
+   - terraform init
+   - terraform plan -out coder.plan
+   - terraform apply coder.plan
 
-- `aks_name` — name of the AKS cluster (`azurerm_kubernetes_cluster.aks`).
-- `rg_name` — name of the resource group (`azurerm_resource_group.rg`).
-
-How to deploy
+Cleanup
 ---
-1. Change defaults in [`azure-demo/coder-workspace/tf/variables.tf`](azure-demo/coder-workspace/tf/variables.tf) as needed.
-2. From the `azure-demo/coder-workspace/tf` directory run:
-   - `terraform init`
-   - `terraform plan -out main.tfplan`
-   - `terraform apply main.tfplan`
-3. After apply, get outputs:
-   - `terraform output --raw aks_name`
-   - `terraform output --raw rg_name`
-
-Clean up
----
-After testing, to clean up the resources, execute following:
-1. From the `azure-demo/coder-workspace/tf` directory run:
-   - `terraform apply -destroy -auto-approve`
-
-Relevant files
----
-- [`azure-demo/coder-workspace/tf/main.tf`](azure-demo/coder-workspace/tf/main.tf) — main resources (AKS, storage, file share, etc.)
-- [`azure-demo/coder-workspace/tf/providers.tf`](azure-demo/coder-workspace/tf/providers.tf) — provider & required versions
-- [`azure-demo/coder-workspace/tf/variables.tf`](azure-demo/coder-workspace/tf/variables.tf) — variables and defaults
-- [`azure-demo/coder-workspace/tf/outputs.tf`](azure-demo/coder-workspace/tf/outputs.tf) — outputs
+- Destroy coder resources first, then the aks/infrastructure workspace.
+- Example:
+  - cd tf/coder; terraform destroy
+  - cd ../aks; terraform destroy
 
 Author
 ---
-Created by Cyrus Cheng
-- GitHub: [github.com/t217145](https://github.com/t217145)
-- Project Repository: [azure-demo/coder-workspace](https://github.com/t217145/azure-demo/tree/main/coder-workspace)
+Created by Cyrus Cheng  
+GitHub: https://github.com/t217145
