@@ -1,0 +1,8 @@
+authSecret:
+  create: true
+  github_token: "${GITHUB_TOKEN}"
+
+runner:
+  replicas: 2
+  labels:
+    - arc
