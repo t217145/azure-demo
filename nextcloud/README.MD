@@ -17,7 +17,7 @@ This is an Azure CLI script to setup a NextCloud application on Azure WebApps. W
 
 5. Set the environmental variable **ARM_SUBSCRIPTION_ID** with your subscription id.
 
-6. Run following script
+6. Run following script 
     ```bash
     terraform init
     terraform plan -out main.tfplan
