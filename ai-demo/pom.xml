@@ -5,7 +5,11 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
+<<<<<<< HEAD
 		<version>3.5.8</version>
+=======
+		<version>3.5.7</version>
+>>>>>>> 7583343fff2dfd1c8dca4d84fc88825cd047a9e2
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.cyrus822</groupId>
