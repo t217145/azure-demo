@@ -29,7 +29,7 @@ variable "storage_size_gb" {
 
 variable "price_tier" {
   default     = "B1"
-  description = "App Service Plan pricing tier, e.g. B1, P0v4"
+  description = "App Service Plan pricing tier, e.g. B1, B3"
 }
 
 variable "tenant_id" {
