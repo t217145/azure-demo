@@ -80,6 +80,7 @@ resource "helm_release" "gha_runner_scale_set" {
 
 resource "null_resource" "remove_all_finalizers_dynamic" {
   provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
     when    = destroy
     command = <<EOT
       sleep 20  # Wait for Helm to delete the resources
