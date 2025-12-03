@@ -27,6 +27,11 @@ variable "storage_size_gb" {
   description = "File share quota size in GB"
 }
 
+variable "price_tier" {
+  default     = "B1"
+  description = "App Service Plan pricing tier, e.g. B1, P0v4"
+}
+
 variable "tenant_id" {
   default      = ""
   description  = "Azure Tenant ID" 
