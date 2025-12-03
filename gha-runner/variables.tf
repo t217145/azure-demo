@@ -4,6 +4,12 @@ variable "github_app_id" {
   sensitive   = true
 }
 
+variable "tf_org" {
+  description = "Organization name of your AKS workspace"
+  type        = string
+  default     = ""
+} 
+
 variable "tfc_aks_workspace_name" {
   description = "TFC workspace name of the AKS"
   type        = string
