@@ -4,6 +4,12 @@ variable "github_app_id" {
   sensitive   = true
 }
 
+variable "tfc_aks_workspace_name" {
+  description = "TFC workspace name of the AKS"
+  type        = string
+  default     = ""
+}
+
 variable "github_app_installation_id" {
   description = "GitHub Actions App Installation Id"
   type        = string
@@ -41,14 +47,4 @@ variable "subscription_id" {
 variable "tenant_id" {
   description = "The Azure Tenant ID where the AKS cluster is located."
   type        = string  
-}
-
-variable "aks_cluster_name" {
-  description = "AKS Cluster name"
-  type        = string
-}
-
-variable "aks_resource_group" {
-  description = "AKS Cluster Resource Group name"
-  type        = string
 }
