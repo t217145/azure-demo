@@ -80,13 +80,17 @@ resource "helm_release" "gha_runner_scale_set" {
 
 resource "null_resource" "remove_all_finalizers_dynamic" {
   provisioner "local-exec" {
-    interpreter = ["bash", "-c"]
+    interpreter = ["/bin/bash", "-c"]
     when    = destroy
     command = <<EOT
       sleep 20  # Wait for Helm to delete the resources
 
+      # Loop through all namespaced resources
       for kind in $(kubectl api-resources --namespaced=true -o name); do
         for name in $(kubectl get $kind -n "gha-demo-ns" -o jsonpath="{.items[*].metadata.name}" 2>/dev/null); do
+          echo "Attempting to delete $kind/$name"
+          kubectl delete $kind $name -n "gha-demo-ns" --wait=false 2>/dev/null
+
           echo "Attempting to remove finalizer from $kind/$name"
           kubectl patch $kind $name \
             -n "gha-demo-ns" \
@@ -96,7 +100,9 @@ resource "null_resource" "remove_all_finalizers_dynamic" {
         done
       done
 
+      # Explicitly handle AutoscalingRunnerSet CR
       for name in $(kubectl get autoscalingrunnerset.actions.github.com -n "gha-demo-ns" -o jsonpath="{.items[*].metadata.name}" 2>/dev/null); do
+        kubectl delete autoscalingrunnerset.actions.github.com $name -n "gha-demo-ns" --wait=false 2>/dev/null
         kubectl patch autoscalingrunnerset.actions.github.com $name \
           -n "gha-demo-ns" \
           --type=json \
@@ -104,8 +110,19 @@ resource "null_resource" "remove_all_finalizers_dynamic" {
           2>/dev/null || echo "No finalizer or patch failed for AutoscalingRunnerSet/$name"
       done
 
+      # Explicitly handle RoleBindings CR
+      for name in $(kubectl get rolebindings.rbac.authorization.k8s.io -n "gha-demo-ns" -o jsonpath="{.items[*].metadata.name}" 2>/dev/null); do
+        kubectl delete rolebindings.rbac.authorization.k8s.io $name -n "gha-demo-ns" --wait=false 2>/dev/null
+        kubectl patch rolebindings.rbac.authorization.k8s.io $name \
+          -n "gha-demo-ns" \
+          --type=json \
+          -p='[{"op": "remove", "path": "/metadata/finalizers"}]' \
+          2>/dev/null || echo "No finalizer or patch failed for RoleBindings/$name"
+      done
+
       # Explicitly handle EphemeralRunner CR
       for name in $(kubectl get ephemeralrunner.actions.github.com -n "gha-demo-ns" -o jsonpath="{.items[*].metadata.name}" 2>/dev/null); do
+        kubectl delete ephemeralrunner.actions.github.com $name -n "gha-demo-ns" --wait=false 2>/dev/null
         kubectl patch ephemeralrunner.actions.github.com $name \
           -n "gha-demo-ns" \
           --type=json \
@@ -115,6 +132,7 @@ resource "null_resource" "remove_all_finalizers_dynamic" {
 
       # Explicitly handle EphemeralRunnerSet CR
       for name in $(kubectl get ephemeralrunnerset.actions.github.com -n "gha-demo-ns" -o jsonpath="{.items[*].metadata.name}" 2>/dev/null); do
+        kubectl delete ephemeralrunnerset.actions.github.com $name -n "gha-demo-ns" --wait=false 2>/dev/null
         kubectl patch ephemeralrunnerset.actions.github.com $name \
           -n "gha-demo-ns" \
           --type=json \
