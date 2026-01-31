@@ -130,3 +130,25 @@ This README is provided as-is for guidance. Use at your own risk and review secu
 
 Author: Cyrus Cheng (cyrus822) <br>
 GitHub: https://github.com/t217145
+
+## Updates to the Project
+
+### Null Resource Enhancements
+
+- **Dynamic Finalizer Removal**: The `null_resource` has been enhanced to dynamically handle additional Kubernetes resource types during the destroy phase. This includes:
+  - `roles.rbac.authorization.k8s.io`
+  - `rolebindings.rbac.authorization.k8s.io`
+  - `ephemeralrunner.actions.github.com`
+  - `ephemeralrunnerset.actions.github.com`
+  - `autoscalingrunnerset.actions.github.com`
+
+- **Retry Logic**: Added retry logic for deletion and patching of Kubernetes resources to ensure robustness in handling finalizers.
+
+### Updated Commands
+
+- **PowerShell Script**: A PowerShell script has been added to automate the deletion and patching of Kubernetes resources. This script loops through all namespaced resources and applies the necessary operations to remove finalizers and delete resources cleanly.
+
+### Usage Notes
+
+- Ensure that the namespace (`gha-demo-ns`) is correctly set in the script or Terraform variables.
+- The enhanced `null_resource` ensures that all resources, including custom resource definitions (CRDs), are cleaned up during the destroy phase without manual intervention.
