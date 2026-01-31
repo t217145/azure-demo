@@ -152,6 +152,29 @@ resource "null_resource" "remove_all_finalizers_dynamic" {
           -p='[{"op": "remove", "path": "/metadata/finalizers"}]' \
           2>/dev/null || echo "No finalizer or patch failed for EphemeralRunnerSet/$name"
       done
+
+      # Explicitly handle Roles CR
+      for name in $(kubectl get roles.rbac.authorization.k8s.io -n "gha-demo-ns" -o jsonpath="{.items[*].metadata.name}" 2>/dev/null); do
+        echo "Attempting to delete Role $name"
+        kubectl delete roles.rbac.authorization.k8s.io $name -n "gha-demo-ns" --wait=false 2>/dev/null
+
+        echo "Attempting to remove finalizer from Role $name"
+        kubectl patch roles.rbac.authorization.k8s.io $name \
+          -n "gha-demo-ns" \
+          --type=json \
+          -p='[{"op": "remove", "path": "/metadata/finalizers"}]' \
+          2>/dev/null || echo "No finalizer or patch failed for Roles/$name"
+
+        echo "Retrying delete for Role $name"
+        kubectl delete roles.rbac.authorization.k8s.io $name -n "gha-demo-ns" --wait=false 2>/dev/null
+
+        echo "Retrying patch for Role $name"
+        kubectl patch roles.rbac.authorization.k8s.io $name \
+          -n "gha-demo-ns" \
+          --type=json \
+          -p='[{"op": "remove", "path": "/metadata/finalizers"}]' \
+          2>/dev/null || echo "No finalizer or patch failed for Roles/$name"
+      done
     EOT
   }
 }
