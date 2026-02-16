@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>com.azure.spring</groupId>
 			<artifactId>spring-cloud-azure-starter</artifactId>
-			<version>5.12.0</version>
+			<version>5.23.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.azure</groupId>
@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>com.azure</groupId>
 			<artifactId>azure-identity</artifactId>
-			<version>1.12.1</version>
+			<version>1.16.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.azure</groupId>
